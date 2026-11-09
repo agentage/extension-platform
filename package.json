@@ -1,7 +1,7 @@
 {
   "name": "@agentage/extension-platform",
   "version": "0.1.0",
-  "description": "An agentage extension: start from this repo with agentage extension create",
+  "description": "The agentage account API: machines and installations",
   "type": "module",
   "license": "MIT",
   "repository": {

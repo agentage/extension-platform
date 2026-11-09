@@ -13,15 +13,10 @@ and [`@agentage/widget`](https://www.npmjs.com/package/@agentage/widget).
 - The kit owns the server, `/health`, auth, the store pool, the scheduler and the images. You
   write only the part code.
 
-| Part   | Folder                  | What it does here                                               |
-| ------ | ----------------------- | --------------------------------------------------------------- |
-| pages  | `src/pages`             | `/` shows `{id} {version} · {commit}`                           |
-| ui     | `src/ui`                | the widget `<{id}-echo>`, served at `/ui/{version}/{id}.js`     |
-| api    | `src/api`               | `GET /api/v1/echo?msg=` (scope `{id}:read`), `GET /api/v1/ping` |
-| mcp    | `src/mcp`               | the tool `{id}__echo` (scope `{id}:read`) on `POST /mcp`        |
-| worker | `src/worker`            | the job `tick`, every minute; it logs `tick` and uses no store  |
-| store  | `migrations/`, `seeds/` | postgres; `GET /api/v1/ping` counts its `pings` rows            |
-| cli    | `src/cli`               | `agentage ping [msg]` prints `pong`                             |
+| Part  | Folder        | What it does here                                             |
+| ----- | ------------- | ------------------------------------------------------------- |
+| api   | `src/api`     | `/api/v1/machines` (C3): list, register, seen, rename, forget |
+| store | `migrations/` | postgres; the `machines` table                                |
 
 ## 2. Start
 
@@ -51,7 +46,6 @@ git init -b master && git add -A && git commit -m "feat: <id> extension"
   from the query on get and delete and from the body otherwise: use `z.coerce` for numbers.
   The handler returns the data; the kit answers `ok(...)`.
 - mcp: give each tool a `scope` beside its schemas. The kit names it `{id}__{name}`.
-- The api reads `ctx.extension.store`. Without a store, `/ping` does not query.
 - store: add a numbered file in `migrations/`. Never edit a migration that ran.
 - `openapi.json` and `platform.mcpc.json` are committed contracts, generated from the routes and
   tools. `check` compares them to the code. After a change, run `npm run build`,
@@ -67,7 +61,7 @@ npx agentage extension check                    # PASS {id} {version} conforms (
 npx agentage extension up                       # ready    N parts healthy    <n> s (each /health body checked)
 npm run test:e2e                                # the widget in a browser, axe WCAG A/AA
 T=$(npx agentage extension token --scope platform:read)
-curl -s -H "Authorization: Bearer $T" "localhost:4280/api/v1/echo?msg=hi"
+curl -s -H "Authorization: Bearer $T" "localhost:4280/api/v1/machines"
 npx agentage extension down                     # removes this working copy's containers
 ```
 
@@ -92,12 +86,12 @@ npx agentage extension down                     # removes this working copy's co
 
 These touches are outside this repo. Each is one small PR or one owner action.
 
-| Where                                 | What                                                                     |
-| ------------------------------------- | ------------------------------------------------------------------------ |
-| agentage/estate `estate.yaml`         | `extensions.{id}: { version, parts: { api: api, ... } }`                 |
-| agentage/e2e `extensions.json`        | `{ "id": "{id}", "token": "GATE_TOKENS", "targets": ["local", "next"] }` |
-| the `GATE_TOKENS` secret (owner)      | a `"{id}"` entry: the bearer your gate sends on `next`                   |
-| agentage/auth `pat-scopes.ts` (owner) | the id in `EXTENSION_IDS`: echo declares `{id}:read`, so it is needed    |
+| Where                                 | What                                                                      |
+| ------------------------------------- | ------------------------------------------------------------------------- |
+| agentage/estate `estate.yaml`         | `extensions.{id}: { version, parts: { api: api, ... } }`                  |
+| agentage/e2e `extensions.json`        | `{ "id": "{id}", "token": "GATE_TOKENS", "targets": ["local", "next"] }`  |
+| the `GATE_TOKENS` secret (owner)      | a `"{id}"` entry: the bearer your gate sends on `next`                    |
+| agentage/auth `pat-scopes.ts` (owner) | the id in `EXTENSION_IDS`: the routes declare `platform:read` and `write` |
 
 - Pools: `web` for pages and ui, `api` for api, mcp and worker, `data` for store. Host: `{id}.next.agentage.io`.
 
