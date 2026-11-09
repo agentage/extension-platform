@@ -11,8 +11,6 @@ const pkg = JSON.parse(readFileSync(new URL('../package.json', SRC), 'utf8')) as
 const IMAGES = ['pages', 'ui', 'api', 'mcp', 'worker'];
 const has = (path: string) => existsSync(new URL(path, SRC));
 const folders = IMAGES.filter((part) => has(part));
-// A variable specifier: the ui folder may have been dropped by create.
-const UI = './ui/index.js';
 
 const sources = (): [string, string][] =>
   readdirSync(SRC, { recursive: true, encoding: 'utf8' })
@@ -27,16 +25,9 @@ describe('the manifest', () => {
     const manifest = validateManifest(pkg);
     expect(imageParts(manifest)).toEqual(folders);
     const store = has('../migrations') ? { store: 'postgres' } : {};
-    const cli = has('cli') ? { cli: true } : {};
     const parts = Object.fromEntries(folders.map((part) => [part, true]));
-    expect(manifest.agentage.parts).toEqual({ ...parts, ...cli, ...store });
-    expect(manifest.agentage.commands?.map(({ name }) => name)).toEqual(
-      has('cli') ? ['ping'] : undefined
-    );
-  });
-
-  it.runIf(has('ui'))('ui exports its widgets map', async () => {
-    expect(Object.keys((await import(UI)) as object)).toEqual(['widgets']);
+    expect(manifest.agentage.parts).toEqual({ ...parts, ...store });
+    expect(manifest.agentage.commands).toBeUndefined();
   });
 
   it('commits a contract only beside its part', () => {
