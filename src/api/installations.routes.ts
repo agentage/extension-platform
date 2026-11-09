@@ -73,6 +73,5 @@ const put = ({ route }: ApiContext, installations: InstallationsStore) => {
 };
 
 export const installationsRoutes = (ctx: ApiContext, installations: InstallationsStore) => {
-  get(ctx, installations);
-  put(ctx, installations);
+  for (const register of [get, put]) register(ctx, installations);
 };

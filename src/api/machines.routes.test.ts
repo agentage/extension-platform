@@ -135,7 +135,7 @@ describe('GET /api/v1/machines', () => {
   });
 
   it('400 VALIDATION_ERROR for a garbled cursor or an out-of-range limit', async () => {
-    const garbled = Buffer.from('["x","m_3c19e7aa"]').toString('base64url');
+    const garbled = Buffer.from('x m_3c19e7aa').toString('base64url');
     for (const query of ['cursor=garbled', `cursor=${garbled}`, 'limit=0', 'limit=101']) {
       const res = await send(await as(READ), `/machines?${query}`, 'GET');
       expect([res.status, (await errorOf(res)).code]).toEqual([400, 'VALIDATION_ERROR']);

@@ -1,3 +1,4 @@
+import { PageQuerySchema } from '@agentage/extension';
 import { z } from 'zod';
 
 export const MACHINE_ID = /^m_[0-9a-f]{8}$/;
@@ -33,45 +34,19 @@ export const MachinePatchSchema = z
   .strictObject({ name: MachineName.optional(), state: MachineState.optional() })
   .refine((p) => p.name !== undefined || p.state !== undefined, 'send name or state');
 
-export interface MachineCursor {
-  t: string;
-  id: string;
-}
-
-export const encodeCursor = (cursor: MachineCursor): string =>
-  Buffer.from(JSON.stringify([cursor.t, cursor.id])).toString('base64url');
-
-const decodeCursor = (raw: string): MachineCursor | null => {
-  try {
-    const value: unknown = JSON.parse(Buffer.from(raw, 'base64url').toString('utf8'));
-    const [t, id] = Array.isArray(value) && value.length === 2 ? (value as unknown[]) : [];
-    const ok = typeof t === 'string' && !Number.isNaN(Date.parse(t)) && typeof id === 'string';
-    return ok && MACHINE_ID.test(id) ? { t, id } : null;
-  } catch {
-    return null;
-  }
-};
-
+// The list keyset: last_seen_at to the microsecond (equal to the stored value), then the id.
+const Keyset = z.tuple([z.iso.datetime(), z.string().regex(MACHINE_ID)]);
+const Cursor = PageQuerySchema.shape.cursor.unwrap().transform((c) => c.split(' '));
 export const MachineListQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(50),
-  cursor: z
-    .string()
-    .optional()
-    .transform((raw, ctx) => {
-      if (raw === undefined) return undefined;
-      const cursor = decodeCursor(raw);
-      if (!cursor) ctx.addIssue({ code: 'custom', message: 'not a cursor this list returned' });
-      return cursor ?? undefined;
-    }),
+  cursor: Cursor.pipe(Keyset).optional(),
 });
 
 export const MachineSchema = z.strictObject({
   id: z.string().regex(MACHINE_ID),
+  ...MachineUpsertSchema.shape,
   name: MachineName,
-  platform: Platform,
-  cliVersion: CliVersion,
   managed: z.boolean(),
-  state: MachineState,
   firstSeenAt: z.iso.datetime(),
   lastSeenAt: z.iso.datetime(),
 });

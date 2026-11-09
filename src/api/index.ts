@@ -6,7 +6,6 @@ import { createMachinesStore } from './machines.store.js';
 
 // Mounted at /api/v1; openapi.json is generated from these routes.
 export function create(ctx: ApiContext) {
-  const machines = createMachinesStore(ctx.store);
-  machinesRoutes(ctx, machines);
+  machinesRoutes(ctx, createMachinesStore(ctx.store));
   installationsRoutes(ctx, createInstallationsStore(ctx.store));
 }

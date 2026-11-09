@@ -5,8 +5,7 @@ import {
   MachineParamsSchema as params,
   MachinePatchSchema,
   MachineSchema as output,
-  MachineUpsertSchema,
-  encodeCursor,
+  MachineUpsertSchema as input,
 } from './machine.schema.js';
 import { type MachinesStore } from './machines.store.js';
 
@@ -20,22 +19,16 @@ const write = { scope: 'write', params } as const;
 
 const list: Register = ({ route }, machines) => {
   const spec = { summary: 'List machines', input: MachineListQuerySchema };
-  route('get', '/machines', spec, async ({ input, caller }) => {
-    const page = await machines.list(caller.sub, input.limit, input.cursor);
-    const next = page.nextCursor ? { nextCursor: encodeCursor(page.nextCursor) } : {};
-    const pagination = { limit: input.limit, total: page.total, ...next };
-    return reply(page.machines, { meta: { pagination } });
+  route('get', '/machines', spec, async ({ input: { limit, cursor }, caller }) => {
+    const { machines: data, total, next } = await machines.list(caller.sub, limit, cursor);
+    const nextCursor = next && Buffer.from(next).toString('base64url');
+    const pagination = { limit, total, ...(nextCursor && { nextCursor }) };
+    return reply(data, { meta: { pagination } });
   });
 };
 
 const upsert: Register = ({ route }, machines) => {
-  const spec = {
-    ...write,
-    summary: 'Register',
-    input: MachineUpsertSchema,
-    output,
-    status: 201,
-  } as const;
+  const spec = { ...write, summary: 'Register', input, output, status: 201 } as const;
   route('put', ID, spec, async ({ input: { managed, ...fields }, params, caller }) => {
     const code = 'MANAGED_REQUIRES_INFRASTRUCTURE';
     if (managed) throw fail('FORBIDDEN', 'managed is set by infrastructure only', { code });
