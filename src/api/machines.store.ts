@@ -1,10 +1,5 @@
 import { type Store } from '@agentage/extension';
-import {
-  type Machine,
-  type MachineCursor,
-  type MachineInput,
-  type MachinePatch,
-} from './machine.schema.js';
+import { type Machine, type MachineInput, type MachinePatch } from './machine.schema.js';
 
 const utc = (column: string, fraction: string) =>
   `to_char(${column} at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.${fraction}"Z"')`;
@@ -17,8 +12,7 @@ const UPSERT = `insert into machines (user_id, id, name, platform, cli_version, 
     cli_version = excluded.cli_version, state = excluded.state, last_seen_at = now()
   returning ${COLUMNS}, (xmax = 0) as created`;
 
-// The cursor keeps microseconds: it must compare equal to the stored value.
-const PAGE = `select ${COLUMNS}, ${utc('last_seen_at', 'US')} as cursor from machines
+const PAGE = `select ${COLUMNS}, ${utc('last_seen_at', 'US')} || ' ' || id as cursor from machines
   where user_id = $1
   and ($2::timestamptz is null or last_seen_at < $2 or (last_seen_at = $2 and id > $3))
   order by last_seen_at desc, id asc limit $4`;
@@ -27,8 +21,6 @@ const PAGE = `select ${COLUMNS}, ${utc('last_seen_at', 'US')} as cursor from mac
 const FORGET = `with gone as (delete from machines where user_id = $1 and id = $2 returning id),
   doc as (delete from installations where owner = $1 and target = $2)
   select id from gone`;
-
-const COUNT = 'select count(*)::int as n from machines where user_id = $1';
 
 export const createMachinesStore = (store: Store) => ({
   upsert: async (userId: string, id: string, input: MachineInput) => {
@@ -50,14 +42,12 @@ export const createMachinesStore = (store: Store) => ({
   },
   forget: async (userId: string, id: string): Promise<boolean> =>
     (await store.query(FORGET, [userId, id])).rows.length > 0,
-  list: async (userId: string, limit: number, at?: MachineCursor) => {
-    const params = [userId, at?.t ?? null, at?.id ?? '', limit + 1];
+  // next: the last row's keyset when a further page exists.
+  list: async (userId: string, limit: number, at?: [string, string]) => {
+    const params = [userId, at?.[0] ?? null, at?.[1] ?? '', limit + 1];
     const rows = (await store.query<Machine & { cursor: string }>(PAGE, params)).rows;
-    const [{ n }] = (await store.query<{ n: number }>(COUNT, [userId])).rows as [{ n: number }];
-    const last = rows.length > limit ? rows[limit - 1] : undefined;
-    const nextCursor = last ? { t: last.cursor, id: last.id } : undefined;
-    const machines = rows.slice(0, limit).map(({ cursor: _cursor, ...machine }) => machine);
-    return { machines, total: n, nextCursor };
+    const next = rows.length > limit ? rows[limit - 1]?.cursor : undefined;
+    return { machines: rows.slice(0, limit).map(({ cursor: _cursor, ...m }) => m), next };
   },
 });
 

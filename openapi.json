@@ -82,22 +82,24 @@
         ],
         "parameters": [
           {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,256}$"
+            }
+          },
+          {
             "name": "limit",
             "in": "query",
             "required": false,
             "schema": {
               "default": 50,
+              "description": "page size; a limit above 200 is clamped to 200",
               "type": "integer",
               "minimum": 1,
-              "maximum": 100
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
+              "maximum": 9007199254740991
             }
           }
         ],
@@ -222,10 +224,6 @@
                     "data": {
                       "type": "object",
                       "properties": {
-                        "id": {
-                          "type": "string",
-                          "pattern": "^m_[0-9a-f]{8}$"
-                        },
                         "name": {
                           "type": "string",
                           "minLength": 1,
@@ -247,6 +245,10 @@
                           "type": "string",
                           "enum": ["connected", "disconnected"]
                         },
+                        "id": {
+                          "type": "string",
+                          "pattern": "^m_[0-9a-f]{8}$"
+                        },
                         "firstSeenAt": {
                           "type": "string",
                           "format": "date-time",
@@ -259,12 +261,12 @@
                         }
                       },
                       "required": [
-                        "id",
                         "name",
                         "platform",
                         "cliVersion",
                         "managed",
                         "state",
+                        "id",
                         "firstSeenAt",
                         "lastSeenAt"
                       ],
@@ -374,10 +376,6 @@
                     "data": {
                       "type": "object",
                       "properties": {
-                        "id": {
-                          "type": "string",
-                          "pattern": "^m_[0-9a-f]{8}$"
-                        },
                         "name": {
                           "type": "string",
                           "minLength": 1,
@@ -399,6 +397,10 @@
                           "type": "string",
                           "enum": ["connected", "disconnected"]
                         },
+                        "id": {
+                          "type": "string",
+                          "pattern": "^m_[0-9a-f]{8}$"
+                        },
                         "firstSeenAt": {
                           "type": "string",
                           "format": "date-time",
@@ -411,12 +413,12 @@
                         }
                       },
                       "required": [
-                        "id",
                         "name",
                         "platform",
                         "cliVersion",
                         "managed",
                         "state",
+                        "id",
                         "firstSeenAt",
                         "lastSeenAt"
                       ],
