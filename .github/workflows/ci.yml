@@ -88,12 +88,12 @@ jobs:
           var="$(jq -r .agentage.id ../package.json | tr a-z- A-Z_)_DIR"
           env "$var=$GITHUB_WORKSPACE" npm run e2e -- platform gate local
 
-      # A gate that skipped itself is not green.
+      # A gate that skipped itself or its p0 is not green: 59 ran on 2026-11-09, 43 without p0.
       - name: Assert the gate was not vacuous
         if: github.actor != 'dependabot[bot]' && github.event.pull_request.head.repo.fork != true
         working-directory: e2e-suite
         env:
-          MIN_EXECUTED: '25'
+          MIN_EXECUTED: '60'
         run: node scripts/assert-executed.mjs
 
       - name: Logs on failure

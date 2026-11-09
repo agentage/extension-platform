@@ -121,17 +121,39 @@ describe('PATCH /api/v1/machines/{id}', () => {
 });
 
 describe('GET /api/v1/machines', () => {
+  // Set times: the order is neither the id order nor its reverse, and a tie spans a page edge.
+  const seenAt = async (times: Record<string, string>) => {
+    for (const [id, at] of Object.entries(times)) {
+      await put(id);
+      await ctx.store.query('update machines set last_seen_at = $1 where id = $2', [at, id]);
+    }
+  };
+  const walk = async (limit: number) => {
+    const ids: string[] = [];
+    let cursor = '';
+    do {
+      const page = await list(`?limit=${limit}${cursor && `&cursor=${cursor}`}`);
+      ids.push(...page.data.map((m) => m.id));
+      cursor = page.meta.pagination.nextCursor ?? '';
+    } while (cursor);
+    return ids;
+  };
+
   it('lists newest first with cursor paging', async () => {
-    for (const id of ['m_00000001', 'm_00000002', 'm_00000003']) await put(id);
-    await send(await as(WRITE), '/machines/m_00000001/seen', 'POST');
+    const at = (s: number) => `2026-11-01T00:00:0${s}.123456Z`;
+    await seenAt({ m_00000001: at(1), m_00000002: at(3), m_00000003: at(2) });
     const first = await list('?limit=2');
-    expect(first.data[0]?.id).toBe('m_00000001');
+    expect(first.data.map((m) => m.id)).toEqual(['m_00000002', 'm_00000003']);
     expect(first.meta.pagination).toMatchObject({ limit: 2, total: 3 });
     const second = await list(`?limit=2&cursor=${first.meta.pagination.nextCursor ?? ''}`);
-    expect(second.data).toHaveLength(1);
+    expect(second.data.map((m) => m.id)).toEqual(['m_00000001']);
     expect(second.meta.pagination.nextCursor).toBeUndefined();
-    const ids = [...first.data, ...second.data].map((m) => m.id).sort();
-    expect(ids).toEqual(['m_00000001', 'm_00000002', 'm_00000003']);
+  });
+
+  it('pages through machines seen at the same microsecond by id, none twice', async () => {
+    const tie = '2026-11-01T00:00:00.123456Z';
+    await seenAt({ m_00000003: tie, m_00000001: tie, m_00000002: tie });
+    expect(await walk(1)).toEqual(['m_00000001', 'm_00000002', 'm_00000003']);
   });
 
   it('400 VALIDATION_ERROR for a garbled cursor or an out-of-range limit', async () => {
