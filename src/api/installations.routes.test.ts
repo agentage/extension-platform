@@ -39,6 +39,11 @@ describe('GET /api/v1/installations/{target}', () => {
     expect([res.status, res.headers.get('etag'), await dataOf(res)]).toEqual([200, etag, doc()]);
   });
 
+  it('platform:write alone reads: the kit ranks write above read', async () => {
+    await put(doc());
+    expect((await read(M, WRITE)).status).toBe(200);
+  });
+
   it('401 anonymous on a machine target', async () => {
     expect((await read(M, null)).status).toBe(401);
   });
@@ -106,6 +111,21 @@ describe('PUT /api/v1/installations/{target} - writes', () => {
     const weak = (await read()).headers.get('etag') ?? '';
     expect(weak).not.toBe(etag);
     expect((await put(doc(), { 'if-match': `W/${weak}` })).status).toBe(200);
+  });
+
+  it('two writers under one etag at once: exactly one wins, the other gets 412', async () => {
+    const etag = (await put(doc())).headers.get('etag') ?? '';
+    const both = await Promise.all([1, 2].map(() => put(doc(), { 'if-match': etag })));
+    expect(both.map((r) => r.status).sort()).toEqual([200, 412]);
+    const creates = await Promise.all(
+      [H, H].map(() => put(doc(H), { 'if-none-match': '*' }, H, ADMIN))
+    );
+    expect(creates.map((r) => r.status).sort()).toEqual([201, 412]);
+  });
+
+  it('the store refuses an installation for a machine not on the account', async () => {
+    const sql = `insert into installations (owner, target, document, etag) values ($1, $2, '{}', 'x')`;
+    await expect(ctx.store.query(sql, ['usr_b', M])).rejects.toMatchObject({ code: '23503' });
   });
 
   it('forgetting the machine drops its installation', async () => {
