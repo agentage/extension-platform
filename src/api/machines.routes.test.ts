@@ -142,6 +142,11 @@ describe('GET /api/v1/machines', () => {
     }
   });
 
+  it('platform:write alone lists: the cli PAT carries the strongest verb only', async () => {
+    await put();
+    expect((await send(await as(WRITE), '/machines', 'GET')).status).toBe(200);
+  });
+
   it('401 anonymous', async () => {
     expect((await send(await as(null), '/machines', 'GET')).status).toBe(401);
   });
