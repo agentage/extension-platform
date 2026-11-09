@@ -65,6 +65,10 @@ export const createMachinesStore = (store: Store) => ({
     const [row] = (await store.query<MachineRow>(sql, params)).rows;
     return row ? toMachine(row) : null;
   },
+  exists: async (userId: string, id: string): Promise<boolean> => {
+    const sql = 'select 1 from machines where user_id = $1 and id = $2';
+    return (await store.query(sql, [userId, id])).rows.length > 0;
+  },
   forget: async (userId: string, id: string): Promise<boolean> => {
     const sql = 'delete from machines where user_id = $1 and id = $2 returning id';
     return (await store.query(sql, [userId, id])).rows.length > 0;

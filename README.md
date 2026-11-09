@@ -1,7 +1,7 @@
 # extension-platform
 
 The agentage extension `platform`: the account API at `platform.<fqdn>/api/v1`. Parts api and
-store (postgres). Routes: `/machines` (the cli's machines). Scopes `platform:read`,
+store (postgres). Routes: `/machines` (the cli's machines), `/installations/{target}` (one document per machine or cloud host). Scopes `platform:read`,
 `platform:write`, `platform:admin`.
 
 ```bash

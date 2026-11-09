@@ -16,7 +16,7 @@ and [`@agentage/widget`](https://www.npmjs.com/package/@agentage/widget).
 | Part  | Folder        | What it does here                                             |
 | ----- | ------------- | ------------------------------------------------------------- |
 | api   | `src/api`     | `/api/v1/machines` (C3): list, register, seen, rename, forget |
-| store | `migrations/` | postgres; the `machines` table                                |
+| store | `migrations/` | postgres; `machines`, `installations`                         |
 
 ## 2. Start
 
