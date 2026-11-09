@@ -1,14 +1,12 @@
 # extension-platform
 
-An agentage extension with one of every part: pages, ui, api, mcp, worker, store and cli. Start a
-new extension from it, keep the parts you need, and ship it to `next` in one day.
-
-## Start
+The agentage extension `platform`: the account API at `platform.<fqdn>/api/v1`. Parts api and
+store (postgres). Routes: `/machines` (the cli's machines), `/installations/{target}` (one document per machine or cloud host). Scopes `platform:read`,
+`platform:write`, `platform:admin`.
 
 ```bash
-agentage extension create <id> [part...]   # no part = all seven
-cd extension-<id> && npm ci && npm run build && agentage extension check
-npm run verify                             # type-check, lint, format, tests, build
+npm ci && npm run verify                   # type-check, lint, format, tests, build
+npx agentage extension check               # the kit's conformance rules
 ```
 
 ## The one page
