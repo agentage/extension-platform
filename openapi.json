@@ -619,14 +619,6 @@
               "type": "string",
               "pattern": "^(m_[0-9a-f]{8}|h_[0-9a-z-]{1,63})$"
             }
-          },
-          {
-            "name": "If-Match",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -694,13 +686,6 @@
                   "required": ["success", "data"]
                 }
               }
-            },
-            "headers": {
-              "ETag": {
-                "schema": {
-                  "type": "string"
-                }
-              }
             }
           },
           "400": {
@@ -735,16 +720,6 @@
           },
           "404": {
             "description": "NOT_FOUND",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "412": {
-            "description": "PRECONDITION_FAILED",
             "content": {
               "application/json": {
                 "schema": {
@@ -836,7 +811,7 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "the envelope",
             "content": {
               "application/json": {

@@ -99,6 +99,21 @@ describe('PUT /api/v1/installations/{target} - writes', () => {
     ]);
   });
 
+  it('If-Match: * replaces any stored document, 412 when none; a weak tag matches', async () => {
+    expect([(await put(doc(), { 'if-match': '*' })).status]).toEqual([412]);
+    const etag = (await put(doc())).headers.get('etag') ?? '';
+    expect((await put(doc(), { 'if-match': '*' })).status).toBe(200);
+    const weak = (await read()).headers.get('etag') ?? '';
+    expect(weak).not.toBe(etag);
+    expect((await put(doc(), { 'if-match': `W/${weak}` })).status).toBe(200);
+  });
+
+  it('forgetting the machine drops its installation', async () => {
+    await put(doc());
+    expect((await send(await as(WRITE), `/machines/${M}`, 'DELETE')).status).toBe(204);
+    expect((await read()).status).toBe(404);
+  });
+
   it('no precondition header: creates 201, then overwrites 200', async () => {
     expect((await put(doc())).status).toBe(201);
     expect((await put(doc())).status).toBe(200);

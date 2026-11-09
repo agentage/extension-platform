@@ -1,11 +1,6 @@
 import { z } from 'zod';
 
 export const MACHINE_ID = /^m_[0-9a-f]{8}$/;
-const CLI_VERSION =
-  /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$/;
-
-export const isCliVersion = (v: unknown): v is string =>
-  typeof v === 'string' && CLI_VERSION.test(v);
 
 const MachineName = z
   .string()
@@ -14,7 +9,12 @@ const MachineName = z
   .max(128)
   .regex(/^[^\u0000-\u001f\u007f]+$/, 'no control characters');
 const Platform = z.string().regex(/^[a-z0-9]{2,16}-[a-z0-9]{2,16}$/, 'expected <platform>-<arch>');
-const CliVersion = z.string().regex(CLI_VERSION, 'expected a semver version');
+export const CliVersion = z
+  .string()
+  .regex(
+    /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$/,
+    'expected a semver version'
+  );
 const MachineState = z.enum(['connected', 'disconnected']);
 
 export const MachineParamsSchema = z.object({

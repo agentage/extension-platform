@@ -8,5 +8,5 @@ import { createMachinesStore } from './machines.store.js';
 export function create(ctx: ApiContext) {
   const machines = createMachinesStore(ctx.store);
   machinesRoutes(ctx, machines);
-  installationsRoutes(ctx, { machines, installations: createInstallationsStore(ctx.store) });
+  installationsRoutes(ctx, createInstallationsStore(ctx.store));
 }
