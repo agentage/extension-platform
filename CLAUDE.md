@@ -13,10 +13,10 @@ and [`@agentage/widget`](https://www.npmjs.com/package/@agentage/widget).
 - The kit owns the server, `/health`, auth, the store pool, the scheduler and the images. You
   write only the part code.
 
-| Part  | Folder        | What it does here                                             |
-| ----- | ------------- | ------------------------------------------------------------- |
-| api   | `src/api`     | `/api/v1/machines` (C3): list, register, seen, rename, forget |
-| store | `migrations/` | postgres; `machines`, `installations`                         |
+| Part  | Folder        | What it does here                                              |
+| ----- | ------------- | -------------------------------------------------------------- |
+| api   | `src/api`     | `/api/v1/machines` (C3), `/api/v1/installations/{target}` (C2) |
+| store | `migrations/` | postgres; `machines`, `installations`                          |
 
 ## 2. Start
 
