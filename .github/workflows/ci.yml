@@ -93,7 +93,7 @@ jobs:
         if: github.actor != 'dependabot[bot]' && github.event.pull_request.head.repo.fork != true
         working-directory: e2e-suite
         env:
-          MIN_EXECUTED: '52'
+          MIN_EXECUTED: '60'
         run: node scripts/assert-executed.mjs
 
       - name: Logs on failure
