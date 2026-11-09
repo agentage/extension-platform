@@ -35,14 +35,16 @@ export const MachinePatchSchema = z
   .refine((p) => p.name !== undefined || p.state !== undefined, 'send name or state');
 
 // The list keyset: last_seen_at to the microsecond (equal to the stored value), then the id.
-const At = z.tuple([z.iso.datetime(), z.string().regex(MACHINE_ID)]);
+const Keyset = z.tuple([z.iso.datetime(), z.string().regex(MACHINE_ID)]);
 const Cursor = PageQuerySchema.shape.cursor.unwrap().transform((c) => c.split(' '));
-export const MachineListQuerySchema = PageQuerySchema.extend({
-  cursor: Cursor.pipe(At).optional(),
+export const MachineListQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+  cursor: Cursor.pipe(Keyset).optional(),
 });
 
-export const MachineSchema = MachineUpsertSchema.extend({
+export const MachineSchema = z.strictObject({
   id: z.string().regex(MACHINE_ID),
+  ...MachineUpsertSchema.shape,
   name: MachineName,
   managed: z.boolean(),
   firstSeenAt: z.iso.datetime(),

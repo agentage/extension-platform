@@ -16,6 +16,7 @@ const ListSchema = z.strictObject({
   meta: z.strictObject({
     pagination: z.strictObject({
       limit: z.int(),
+      total: z.int(),
       nextCursor: z.string().optional(),
     }),
   }),
@@ -125,7 +126,7 @@ describe('GET /api/v1/machines', () => {
     await send(await as(WRITE), '/machines/m_00000001/seen', 'POST');
     const first = await list('?limit=2');
     expect(first.data[0]?.id).toBe('m_00000001');
-    expect(first.meta.pagination).toMatchObject({ limit: 2 });
+    expect(first.meta.pagination).toMatchObject({ limit: 2, total: 3 });
     const second = await list(`?limit=2&cursor=${first.meta.pagination.nextCursor ?? ''}`);
     expect(second.data).toHaveLength(1);
     expect(second.meta.pagination.nextCursor).toBeUndefined();
@@ -133,9 +134,9 @@ describe('GET /api/v1/machines', () => {
     expect(ids).toEqual(['m_00000001', 'm_00000002', 'm_00000003']);
   });
 
-  it('400 VALIDATION_ERROR for a garbled cursor or a limit below 1', async () => {
+  it('400 VALIDATION_ERROR for a garbled cursor or an out-of-range limit', async () => {
     const garbled = Buffer.from('x m_3c19e7aa').toString('base64url');
-    for (const query of ['cursor=garbled', `cursor=${garbled}`, 'limit=0']) {
+    for (const query of ['cursor=garbled', `cursor=${garbled}`, 'limit=0', 'limit=101']) {
       const res = await send(await as(READ), `/machines?${query}`, 'GET');
       expect([res.status, (await errorOf(res)).code]).toEqual([400, 'VALIDATION_ERROR']);
     }

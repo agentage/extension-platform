@@ -22,6 +22,8 @@ const FORGET = `with gone as (delete from machines where user_id = $1 and id = $
   doc as (delete from installations where owner = $1 and target = $2)
   select id from gone`;
 
+const COUNT = 'select count(*)::int as n from machines where user_id = $1';
+
 export const createMachinesStore = (store: Store) => ({
   upsert: async (userId: string, id: string, input: MachineInput) => {
     const params = [userId, id, input.name ?? null, input.platform, input.cliVersion, input.state];
@@ -46,8 +48,9 @@ export const createMachinesStore = (store: Store) => ({
   list: async (userId: string, limit: number, at?: [string, string]) => {
     const params = [userId, at?.[0] ?? null, at?.[1] ?? '', limit + 1];
     const rows = (await store.query<Machine & { cursor: string }>(PAGE, params)).rows;
+    const [{ n }] = (await store.query<{ n: number }>(COUNT, [userId])).rows as [{ n: number }];
     const next = rows.length > limit ? rows[limit - 1]?.cursor : undefined;
-    return { machines: rows.slice(0, limit).map(({ cursor: _cursor, ...m }) => m), next };
+    return { machines: rows.slice(0, limit).map(({ cursor: _c, ...m }) => m), total: n, next };
   },
 });
 

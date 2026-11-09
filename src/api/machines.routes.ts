@@ -20,9 +20,10 @@ const write = { scope: 'write', params } as const;
 const list: Register = ({ route }, machines) => {
   const spec = { summary: 'List machines', input: MachineListQuerySchema };
   route('get', '/machines', spec, async ({ input: { limit, cursor }, caller }) => {
-    const { machines: data, next } = await machines.list(caller.sub, limit, cursor);
+    const { machines: data, total, next } = await machines.list(caller.sub, limit, cursor);
     const nextCursor = next && Buffer.from(next).toString('base64url');
-    return reply(data, { meta: { pagination: { limit, ...(nextCursor && { nextCursor }) } } });
+    const pagination = { limit, total, ...(nextCursor && { nextCursor }) };
+    return reply(data, { meta: { pagination } });
   });
 };
 
