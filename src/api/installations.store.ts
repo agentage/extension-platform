@@ -25,6 +25,12 @@ const WRITE: Record<Precondition['kind'], string> = {
     returning etag, false as created`,
 };
 
+// 23503: the machine was forgotten between the exists check and the insert.
+const raced = (err: unknown): { rows: Written[] } => {
+  if ((err as { code?: unknown } | null)?.code === '23503') return { rows: [] };
+  throw err;
+};
+
 export const createInstallationsStore = (store: Store) => ({
   get: async (owner: string, target: string): Promise<Stored | null> => {
     const sql = 'select document, etag from installations where owner = $1 and target = $2';
@@ -35,7 +41,7 @@ export const createInstallationsStore = (store: Store) => ({
   put: async (owner: string, target: string, doc: Installation, sent: Precondition) => {
     const last = sent.kind === 'match' ? sent.etag : target.startsWith('h_');
     const params = [owner, target, JSON.stringify(doc), newEtag(), last];
-    const [row] = (await store.query<Written>(WRITE[sent.kind], params)).rows;
+    const [row] = (await store.query<Written>(WRITE[sent.kind], params).catch(raced)).rows;
     return row ? { etag: quote(row.etag), created: row.created } : null;
   },
 });

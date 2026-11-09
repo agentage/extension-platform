@@ -17,10 +17,8 @@ const PAGE = `select ${COLUMNS}, ${utc('last_seen_at', 'US')} || ' ' || id as cu
   and ($2::timestamptz is null or last_seen_at < $2 or (last_seen_at = $2 and id > $3))
   order by last_seen_at desc, id asc limit $4`;
 
-// Forget also drops the machine's installation.
-const FORGET = `with gone as (delete from machines where user_id = $1 and id = $2 returning id),
-  doc as (delete from installations where owner = $1 and target = $2)
-  select id from gone`;
+// Forget also drops the machine's installation: the foreign key cascades (migration 003).
+const FORGET = 'delete from machines where user_id = $1 and id = $2 returning id';
 
 const COUNT = 'select count(*)::int as n from machines where user_id = $1';
 
