@@ -9,3 +9,5 @@ waive:
     reason: 'the extension kit owns the server, logs and /health (sealing); telemetry shipping lands in the kit'
   - id: be-migrations-ci
     reason: 'an extension never migrates from its own repo: the kit migrate job applies migrations/ in the local job (up) and in estate apply before each rollout; unit tests apply them to an in-process postgres'
+  - id: cicd-release-artifact
+    reason: 'release.yml publishes through `agentage extension release` (images, record, npm OIDC), not a literal npm publish command'
