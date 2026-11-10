@@ -36,5 +36,4 @@ jobs:
         run: printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: node_modules/.bin/agentage extension release # the lockfile's cli, never a fresh resolve
