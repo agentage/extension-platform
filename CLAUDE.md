@@ -4,14 +4,14 @@ For an agent that changes this repo. What it is, how to run it and how to releas
 
 ## Where facts live
 
-- Routes, status codes, body limits: `openapi.json` (generated; never edit by hand).
-- Scopes per route, the etag rules, who sees which rows: `README.md` "Routes and scopes".
-- What a machine and an installation are: `README.md` "What it holds".
+- Scopes per route, the etag rules, who sees which rows, the 256 KiB installation limit: `docs/routes.md` (short form: `README.md` "Routes and scopes"); proof `src/api/*.routes.ts`.
+- Routes and scopes: `docs/routes.md`, then `openapi.json` (generated; never edit by hand). Error codes such as 413 `PAYLOAD_TOO_LARGE`: `docs/routes.md`; proof `src/api/installations.routes.ts`.
+- What a machine and an installation are: `README.md` "What it holds"; proof `src/api/*.schema.ts`.
 - Run it locally, ports, tokens: `README.md` "Run it locally".
 - Database tables: `migrations/`; the rules for a new migration are in the Rules section below.
 - The manifest (id, parts, settings, secrets): the `agentage` block of `package.json`.
 - CI jobs and the gate floor (`MIN_EXECUTED`): `.github/workflows/ci.yml`. Test coverage floor: `vitest.config.ts`.
-- Release rules and refusals: `README.md` "Release", `.github/workflows/release.yml`.
+- Release rules and refusals: `README.md` "Release"; proof `.github/workflows/release.yml`.
 
 Read the file named here before you read `src/`.
 
