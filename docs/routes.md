@@ -20,4 +20,5 @@ The full list is [openapi.json](../openapi.json). It is generated: do not edit i
 - `PUT /machines/{id}` refuses `managed: true` with 403 `MANAGED_REQUIRES_INFRASTRUCTURE`. Only the infrastructure may set `managed`.
 - `PUT /installations/{target}` takes `If-Match: <etag>` or `If-None-Match: *`, never both.
 - If the etag does not match, the answer is 412. `details` holds the current document and its etag. Apply your change to that document and send it again.
+- "Or higher" follows the order `read`, `write`, `admin`. A token with a higher scope also passes a route that needs a lower one (kit `verify-token.js`: a held `platform:<verb>` of equal or greater rank).
 - A machine only sees the rows of its own account.

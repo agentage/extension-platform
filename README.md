@@ -19,7 +19,7 @@ npm ci && npx agentage extension up    # needs Node 22, Docker, git; serves http
 The full list is [openapi.json](openapi.json). It is generated, so do not edit it.
 
 - Every route needs a token, except `GET /installations/h_...`.
-- Read routes need `platform:read`. Write routes need `platform:write`.
+- Read routes need `platform:read` or higher. Write routes need `platform:write` or higher.
 - A write to a host installation also needs `platform:admin`.
 - A machine only sees the rows of its own account.
 
