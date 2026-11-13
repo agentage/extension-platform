@@ -2,6 +2,19 @@
 
 For an agent that changes this repo. What it is, how to run it and how to release it: [README.md](README.md). The kit rules are in the README of [`@agentage/extension`](https://www.npmjs.com/package/@agentage/extension). A deployed example of the same shape is [agentage/extension-probe](https://github.com/agentage/extension-probe).
 
+## Where facts live
+
+- Routes, status codes, body limits: `openapi.json` (generated; never edit by hand).
+- Scopes per route, the etag rules, who sees which rows: `README.md` "Routes and scopes".
+- What a machine and an installation are: `README.md` "What it holds".
+- Run it locally, ports, tokens: `README.md` "Run it locally".
+- Database tables: `migrations/`; the rules for a new migration are in the Rules section below.
+- The manifest (id, parts, settings, secrets): the `agentage` block of `package.json`.
+- CI jobs and the gate floor (`MIN_EXECUTED`): `.github/workflows/ci.yml`. Test coverage floor: `vitest.config.ts`.
+- Release rules and refusals: `README.md` "Release", `.github/workflows/release.yml`.
+
+Read the file named here before you read `src/`.
+
 ## Where things are
 
 | Part  | Folder        | What it does here                                       |
