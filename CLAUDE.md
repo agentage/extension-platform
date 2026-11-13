@@ -5,7 +5,7 @@ For an agent that changes this repo. What it is, how to run it and how to releas
 ## Where facts live
 
 - Routes, status codes, body limits: `openapi.json` (generated; never edit by hand).
-- Scopes per route, the etag rules, who sees which rows: `README.md` "Routes and scopes".
+- Scopes per route, the etag rules, who sees which rows: `docs/routes.md`; short form in `README.md` "Routes and scopes".
 - What a machine and an installation are: `README.md` "What it holds".
 - Run it locally, ports, tokens: `README.md` "Run it locally".
 - Database tables: `migrations/`; the rules for a new migration are in the Rules section below.
