@@ -5,7 +5,7 @@ For an agent that changes this repo. What it is, how to run it and how to releas
 ## Where facts live
 
 - Scopes per route, the etag rules, who sees which rows, the 256 KiB installation limit: `docs/routes.md` (short form: `README.md` "Routes and scopes"); proof `src/api/*.routes.ts`.
-- Routes and status codes: `docs/routes.md`, then `openapi.json` (generated; never edit by hand).
+- Routes and scopes: `docs/routes.md`, then `openapi.json` (generated; never edit by hand). Error codes such as 413 `PAYLOAD_TOO_LARGE`: `docs/routes.md`; proof `src/api/installations.routes.ts`.
 - What a machine and an installation are: `README.md` "What it holds"; proof `src/api/*.schema.ts`.
 - Run it locally, ports, tokens: `README.md` "Run it locally".
 - Database tables: `migrations/`; the rules for a new migration are in the Rules section below.
