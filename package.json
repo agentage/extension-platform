@@ -38,7 +38,7 @@
     "!dist/**/*.test.*"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && (test ! -d src/ui || agentage-widget bundle)",
+    "build": "tsc -p tsconfig.build.json",
     "type-check": "tsc --noEmit -p tsconfig.eslint.json",
     "lint": "eslint .",
     "format": "prettier --write .",
