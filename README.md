@@ -20,7 +20,17 @@ npm ci && npx agentage extension up    # needs Node 22, Docker, git; serves http
 The full list is [openapi.json](openapi.json). It is generated: do not edit it by hand. Rules where a wrong guess costs something:
 
 - Every route needs a token. The exception is `GET /installations/h_...`, which is open for a cloud host.
-- Scopes: `platform:read` (list), `platform:write` (change your own machines and installations), `platform:admin` (write a cloud host document, `h_...`).
+- Scopes, per route (declared in `src/api/*.routes.ts`):
+
+  | Route                                         | Scope declared | Also needed                                                   |
+  | --------------------------------------------- | -------------- | ------------------------------------------------------------- |
+  | `GET /machines`                               | `read`         |                                                               |
+  | `PUT`, `PATCH`, `DELETE /machines/{id}`       | `write`        |                                                               |
+  | `POST /machines/{id}/seen`                    | `write`        |                                                               |
+  | `GET /installations/{target}`                 | `optional`     | `m_...`: any valid token. `h_...`: no token                   |
+  | `PUT /installations/{target}`, machine target | `write`        |                                                               |
+  | `PUT /installations/{target}`, host `h_...`   | `write`        | and `platform:admin`, checked in the handler (403 without it) |
+
 - `PUT /machines/{id}` answers 201 for a new machine and 200 for an update. It refuses `managed: true` with 403 `MANAGED_REQUIRES_INFRASTRUCTURE`: only infrastructure sets it.
 - `PUT /installations/{target}` takes `If-Match: <etag>` or `If-None-Match: *`, never both. A failed precondition answers 412 with the current document and its etag in `details`. Replay on that document.
 - A machine only sees the rows of its own account.
