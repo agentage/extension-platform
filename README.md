@@ -1,8 +1,6 @@
 # extension-platform
 
-The agentage account API. It stores the machines of each account. It also stores one installation document per machine or cloud host. The agentage cli registers its machine here and sends a heartbeat.
-
-This repo is the `platform` extension (`@agentage/extension-platform`). It is served at `platform.<host>/api/v1`.
+The agentage account API. It stores each account's machines and one installation document per machine or cloud host (an `h_<host>` target): a JSON file that lists the extension deployments and routes of that target. The agentage cli registers its machine here and sends a heartbeat. This repo is the `platform` extension (`@agentage/extension-platform`), served at `platform.<host>/api/v1`.
 
 ```bash
 npm ci && npx agentage extension up    # needs Node 22, Docker, git; serves http://localhost:4280
@@ -30,15 +28,13 @@ More: [docs/routes.md](docs/routes.md)
 - **Extension**: one npm package with a manifest in the `agentage` block of `package.json`.
 - **Part**: one folder of `src/` that runs as its own container: `api`, and `store` for the migrations.
 - **Kit**: the library `@agentage/extension`. It owns the server, `/health`, auth and logs. The repo `agentage/platform` holds the kit. It is not this repo.
-- **Gate**: the end-to-end suite in agentage/e2e (private). It runs against a running copy.
-- **next**: the staging environment at `next.agentage.io`.
 
 ## Run it locally
 
 You need Node 22, npm 10, Docker and git. Ports 4280 and 4281 must be free, or `up` refuses to start.
 
 1. `npm ci`
-2. `npx agentage extension up`. It builds the images, starts postgres, a dev token issuer (port 4281) and a gateway (port 4280), and waits until every part is healthy.
+2. `npx agentage extension up`. It builds the images and starts postgres. It also starts a dev token issuer (port 4281) and a gateway (port 4280). It waits until every part is healthy.
 3. Call the api with a token that has the scope of the route:
 
    ```bash
