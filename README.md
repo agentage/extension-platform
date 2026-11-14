@@ -1,6 +1,6 @@
 # extension-platform
 
-The agentage account API. It stores each account's machines and one installation document per machine or cloud host (an `h_<host>` target): a JSON file that lists the extension deployments and routes of that target. The agentage cli registers its machine here and sends a heartbeat. This repo is the `platform` extension (`@agentage/extension-platform`), served at `platform.<host>/api/v1`.
+The agentage account API: the `platform` extension (`@agentage/extension-platform`), served at `platform.<host>/api/v1`. It stores each account's machines, and the agentage cli registers its machine here and sends a heartbeat. It also stores one installation document per machine or cloud host (an `h_<host>` target). An installation document is a JSON document that lists the extension deployments and routes of that target.
 
 ```bash
 npm ci && npx agentage extension up    # needs Node 22, Docker, git; serves http://localhost:4280

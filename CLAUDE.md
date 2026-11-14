@@ -10,6 +10,7 @@ For an agent that changes this repo. What it is, how to run it and how to releas
 - Run it locally, ports, tokens: `README.md` "Run it locally".
 - Database tables: `migrations/`; the rules for a new migration are in the Rules section below.
 - The manifest (id, parts, settings, secrets): the `agentage` block of `package.json`.
+- **Gate**: the end-to-end suite in agentage/e2e (private). It runs against a running copy.
 - CI jobs and the gate floor (`MIN_EXECUTED`): `.github/workflows/ci.yml`. Test coverage floor: `vitest.config.ts`.
 - Release rules and refusals: `README.md` "Release"; proof `.github/workflows/release.yml`.
 
@@ -43,7 +44,6 @@ Read the file named here before you read `src/`.
 
 CI (`.github/workflows/ci.yml`) runs the same two steps. Its `local` job then runs `up` and the gate: `npm run e2e -- platform gate local` in agentage/e2e.
 
-- **Gate**: the end-to-end suite in agentage/e2e (private). It runs against a running copy.
 - **next**: the staging environment at `next.agentage.io`.
 - The gate never retries. A gate that runs fewer checks than `MIN_EXECUTED` is red. The floor is set in `ci.yml` (the step "Assert the gate was not vacuous"). Raise it when the gate grows.
 - The gate needs a `platform` row in agentage/e2e `extensions.json`. The id must also be in the auth service's list of extension ids, so a token can carry `platform:*` scopes.
