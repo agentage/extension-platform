@@ -25,8 +25,14 @@ const read = async (target = M, who: Who = READ) => send(await as(who), path(tar
 const put = async (body: unknown, headers = {}, target = M, who: Who = WRITE) =>
   send(await as(who), path(target), 'PUT', body, headers);
 const dataOf = async (res: Response) => ((await res.json()) as { data: unknown }).data;
+// A host row written before D2 (the route refuses new ones).
+const seedHost = () =>
+  ctx.store.query(
+    `insert into installations (owner, target, document, etag) values ('', $1, $2, 'aaaaaaaaaaaa')`,
+    [H, JSON.stringify(doc(H))]
+  );
 
-describe('GET /api/v1/installations/{target}', () => {
+describe('GET /api/platform/installations/{target}', () => {
   it('404 INSTALLATION_NOT_FOUND before one is stored, never cached', async () => {
     const res = await read();
     expect([res.status, (await errorOf(res)).code]).toEqual([404, 'INSTALLATION_NOT_FOUND']);
@@ -48,8 +54,8 @@ describe('GET /api/v1/installations/{target}', () => {
     expect((await read(M, null)).status).toBe(401);
   });
 
-  it('a cloud host document reads anonymous', async () => {
-    await put(doc(H), {}, H, ADMIN);
+  it('an old cloud host document reads anonymous', async () => {
+    await seedHost();
     const res = await read(H, null);
     expect([res.status, await dataOf(res)]).toEqual([200, doc(H)]);
   });
@@ -63,7 +69,7 @@ describe('GET /api/v1/installations/{target}', () => {
   );
 });
 
-describe('PUT /api/v1/installations/{target} - writes', () => {
+describe('PUT /api/platform/installations/{target} - writes', () => {
   it('201 creates with If-None-Match: *, the ETag header set', async () => {
     const res = await put(doc(), { 'if-none-match': '*' });
     expect([res.status, await dataOf(res)]).toEqual([201, doc()]);
@@ -117,10 +123,6 @@ describe('PUT /api/v1/installations/{target} - writes', () => {
     const etag = (await put(doc())).headers.get('etag') ?? '';
     const both = await Promise.all([1, 2].map(() => put(doc(), { 'if-match': etag })));
     expect(both.map((r) => r.status).sort()).toEqual([200, 412]);
-    const creates = await Promise.all(
-      [H, H].map(() => put(doc(H), { 'if-none-match': '*' }, H, ADMIN))
-    );
-    expect(creates.map((r) => r.status).sort()).toEqual([201, 412]);
   });
 
   it('the store refuses an installation for a machine not on the account', async () => {
@@ -148,7 +150,7 @@ describe('PUT /api/v1/installations/{target} - writes', () => {
   });
 });
 
-describe('PUT /api/v1/installations/{target} - access', () => {
+describe('PUT /api/platform/installations/{target} - access', () => {
   it('403 without platform:write', async () => {
     expect((await put(doc(), {}, M, READ)).status).toBe(403);
   });
@@ -160,14 +162,23 @@ describe('PUT /api/v1/installations/{target} - access', () => {
     expect((await read(M, OTHER)).status).toBe(404);
   });
 
-  it('a cloud host needs platform:admin', async () => {
-    const res = await put(doc(H), {}, H, WRITE);
-    expect([res.status, (await errorOf(res)).message]).toEqual([403, 'Needs platform:admin']);
-    expect((await put(doc(H), {}, H, ADMIN)).status).toBe(201);
-  });
+  it.each([WRITE, ADMIN])(
+    'a cloud host write is 403 HOST_INSTALLATION_IS_A_FILE (%s)',
+    async (who) => {
+      await seedHost();
+      for (const headers of [{}, { 'if-match': '"aaaaaaaaaaaa"' }]) {
+        const res = await put(doc(H), headers, H, who);
+        expect([res.status, (await errorOf(res)).code]).toEqual([
+          403,
+          'HOST_INSTALLATION_IS_A_FILE',
+        ]);
+      }
+      expect(await dataOf(await read(H, null))).toEqual(doc(H));
+    }
+  );
 });
 
-describe('PUT /api/v1/installations/{target} - validation and size', () => {
+describe('PUT /api/platform/installations/{target} - validation and size', () => {
   it('400 naming the failing path', async () => {
     const bad = { ...doc(), deployments: [{ id: 'probe', url: 'ftp://x' }] };
     const res = await put(bad);
@@ -188,7 +199,7 @@ describe('PUT /api/v1/installations/{target} - validation and size', () => {
   it('400 for a body that is not JSON', async () => {
     const server = await as(WRITE);
     const init = { method: 'PUT', headers: { 'content-type': 'application/json' }, body: '{' };
-    expect((await server.fetch(`/api/v1${path(M)}`, init)).status).toBe(400);
+    expect((await server.fetch(`/api/platform${path(M)}`, init)).status).toBe(400);
   });
 
   it('413 PAYLOAD_TOO_LARGE above 256 KiB', async () => {

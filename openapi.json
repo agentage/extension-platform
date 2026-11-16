@@ -72,7 +72,7 @@
     }
   },
   "paths": {
-    "/api/v1/machines": {
+    "/api/platform/machines": {
       "get": {
         "summary": "List machines",
         "security": [
@@ -154,7 +154,7 @@
         }
       }
     },
-    "/api/v1/machines/{id}": {
+    "/api/platform/machines/{id}": {
       "put": {
         "summary": "Register",
         "security": [
@@ -536,7 +536,7 @@
         }
       }
     },
-    "/api/v1/machines/{id}/seen": {
+    "/api/platform/machines/{id}/seen": {
       "post": {
         "summary": "Heartbeat",
         "security": [
@@ -602,7 +602,7 @@
         }
       }
     },
-    "/api/v1/installations/{target}": {
+    "/api/platform/installations/{target}": {
       "get": {
         "summary": "Read an installation",
         "security": [

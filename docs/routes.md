@@ -12,7 +12,7 @@ The full list is [openapi.json](../openapi.json). It is generated: do not edit i
   | `POST /machines/{id}/seen`                    | `write`              |                                                                                           |
   | `GET /installations/{target}`                 | `optional`           | A machine target needs `platform:read` or higher, else 403. A host target needs no token. |
   | `PUT /installations/{target}`, machine target | `write`              |                                                                                           |
-  | `PUT /installations/{target}`, host `h_...`   | `write`              | Also `platform:admin`, checked in the handler. Without it the answer is 403.              |
+  | `PUT /installations/{target}`, host `h_...`   | `write`              | Refused for every token: 403 `HOST_INSTALLATION_IS_A_FILE` (D2, the file in apphosts).    |
 
   A token you send to `GET /installations/h_...` is still checked.
 
