@@ -1,7 +1,7 @@
 import { PageQuerySchema } from '@agentage/extension';
 import { z } from 'zod';
 
-export const MACHINE_ID = /^m_[0-9a-f]{8}$/;
+const MACHINE_ID = /^m_[0-9a-f]{8}$/;
 
 const MachineName = z
   .string()
