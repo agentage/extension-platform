@@ -4,15 +4,16 @@ For an agent that changes this repo. What it is, how to run it and how to releas
 
 ## Where facts live
 
-- Scopes per route, the etag rules, who sees which rows, the 256 KiB installation limit: `docs/routes.md` (short form: `README.md` "Routes and scopes"); proof `src/api/*.routes.ts`.
+- Scopes per route, the etag rules, who sees which rows, the 256 KiB installation limit: `docs/routes.md` (short form: `README.md` "What it serves"); proof `src/api/*.routes.ts`.
 - Routes and scopes: `docs/routes.md`, then `openapi.json` (generated; never edit by hand). Error codes such as 413 `PAYLOAD_TOO_LARGE`: `docs/routes.md`; proof `src/api/installations.routes.ts`.
 - What a machine and an installation are: `README.md` "What it holds"; proof `src/api/*.schema.ts`.
-- Run it locally, ports, tokens: `README.md` "Run it locally".
+- Run it locally, ports, tokens: `README.md` "Quick start".
 - Database tables: `migrations/`; the rules for a new migration are in the Rules section below.
 - The manifest (id, parts, settings, secrets): the `agentage` block of `package.json`.
 - **Gate**: the end-to-end suite in agentage/e2e (private). It runs against a running copy.
 - CI jobs and the gate floor (`MIN_EXECUTED`): `.github/workflows/ci.yml`. Test coverage floor: `vitest.config.ts`.
 - Release rules and refusals: `README.md` "Release"; proof `.github/workflows/release.yml`.
+- The target design (the extension model, the app host): the north star in the agentage product vault, `projects/architecture/`. Do not copy it into this repo.
 
 Read the file named here before you read `src/`.
 
@@ -32,7 +33,7 @@ Read the file named here before you read `src/`.
 - A part imports only its own folder and `src/lib/`. `src/manifest.test.ts` refuses a cross-part import.
 - In `src/` never use `listen()`, the `process` global, a token check or an absolute agentage URL. The kit owns them.
 - Declare a route with `route(method, path, { summary, scope, input, output }, handler)`. The scope is `read` (the default), `write`, `admin`, `public` or `optional`.
-- Account rows are keyed by the caller's id (`caller.sub`). A route must never return a row of another account. Host documents (`h_...`) belong to no account; they are read-only (D2: an app host installation is its file in agentage/apphosts).
+- Account rows are keyed by the caller's id (`caller.sub`). A route must never return a row of another account. Host documents (`h_...`) belong to no account; they are read-only, because an app host installation is its file in agentage/apphosts.
 - Add a numbered file in `migrations/` for a schema change. Never edit a migration that ran. Write each one so a second run does nothing: `if not exists`, or a `do` block that catches `duplicate_object`.
 - Tests sit beside the code as `src/**/*.test.ts`. Coverage floor: 70 on all four metrics (`vitest.config.ts`). `npm run test:e2e` finds no `*.spec.ts` file here and passes with no tests.
 - After a route change run `npm run build`, `npx agentage extension check --write`, then `npm run format`. `check` compares `openapi.json` with the code.
@@ -50,7 +51,8 @@ CI (`.github/workflows/ci.yml`) runs the same two steps. Its `local` job then ru
 
 ## After a release
 
-- A merge to the estate (agentage/estate) master deploys `next`. The deploy applies the stacks, checks each part's `/health`, then runs `npm run e2e -- platform gate next`.
+- Today the estate (agentage/estate) runs this extension, not an app host. The move to the platform app host (a row in `platform/installation.json` of agentage/apphosts) is planned.
+- A merge to the estate master deploys `next`. The deploy applies the stacks, checks each part's `/health`, then runs `npm run e2e -- platform gate next`.
 - The `version` field of the `platform` row in `estate.yaml` sets which release runs. To change what runs, release a new version and change that field.
 - Read a red deploy on the Actions tab of agentage/estate. It names the part and the check. Search the part's logs for the request's `agcid`.
 - The estate runs the migrations as a job before the rollout. A release never restarts the store.
