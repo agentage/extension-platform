@@ -1,36 +1,8 @@
-import { afterAll, beforeEach, describe, expect, it } from 'vitest';
-import { ADMIN, errorOf, OTHER, READ, send, testServers, WRITE } from './servers.test-support.js';
+import { describe, expect, it } from 'vitest';
+import { dataOf, doc, H, installationsSuite, M } from './installations.test-support.js';
+import { errorOf, send, WRITE } from './servers.test-support.js';
 
-const M = 'm_1a2b3c4d';
-const H = 'h_cloud-01';
-const doc = (target = M) => ({
-  target,
-  deployments: [{ id: 'probe', url: 'https://probe.next.agentage.io' }],
-  routes: {
-    '/': { kind: 'column', children: [{ kind: 'widget', deployment: 'probe', name: 'echo' }] },
-  },
-});
-const REGISTER = { platform: 'linux-x64', cliVersion: '0.49.0', state: 'connected' };
-
-const { ctx, as, close } = testServers();
-beforeEach(async () => {
-  await ctx.store.query('delete from installations; delete from machines');
-  await send(await as(WRITE), `/machines/${M}`, 'PUT', REGISTER);
-}, 30_000);
-afterAll(close);
-
-type Who = Parameters<typeof as>[0];
-const path = (target: string) => `/installations/${target}`;
-const read = async (target = M, who: Who = READ) => send(await as(who), path(target), 'GET');
-const put = async (body: unknown, headers = {}, target = M, who: Who = WRITE) =>
-  send(await as(who), path(target), 'PUT', body, headers);
-const dataOf = async (res: Response) => ((await res.json()) as { data: unknown }).data;
-// A host row written before D2 (the route refuses new ones).
-const seedHost = () =>
-  ctx.store.query(
-    `insert into installations (owner, target, document, etag) values ('', $1, $2, 'aaaaaaaaaaaa')`,
-    [H, JSON.stringify(doc(H))]
-  );
+const { ctx, as, read, put, seedHost } = installationsSuite();
 
 describe('GET /api/platform/installations/{target}', () => {
   it('404 INSTALLATION_NOT_FOUND before one is stored, never cached', async () => {
@@ -147,71 +119,5 @@ describe('PUT /api/platform/installations/{target} - writes', () => {
     [{ 'if-match': 'not-quoted' }],
   ])('400 for preconditions %j', async (headers) => {
     expect((await put(doc(), headers)).status).toBe(400);
-  });
-});
-
-describe('PUT /api/platform/installations/{target} - access', () => {
-  it('403 without platform:write', async () => {
-    expect((await put(doc(), {}, M, READ)).status).toBe(403);
-  });
-
-  it('404 MACHINE_NOT_FOUND for a machine of another account; accounts stay apart', async () => {
-    await put(doc());
-    const res = await put(doc(), {}, M, OTHER);
-    expect([res.status, (await errorOf(res)).code]).toEqual([404, 'MACHINE_NOT_FOUND']);
-    expect((await read(M, OTHER)).status).toBe(404);
-  });
-
-  it.each([WRITE, ADMIN])(
-    'a cloud host write is 403 HOST_INSTALLATION_IS_A_FILE (%s)',
-    async (who) => {
-      await seedHost();
-      for (const headers of [{}, { 'if-match': '"aaaaaaaaaaaa"' }]) {
-        const res = await put(doc(H), headers, H, who);
-        expect([res.status, (await errorOf(res)).code]).toEqual([
-          403,
-          'HOST_INSTALLATION_IS_A_FILE',
-        ]);
-      }
-      expect(await dataOf(await read(H, null))).toEqual(doc(H));
-    }
-  );
-});
-
-describe('PUT /api/platform/installations/{target} - validation and size', () => {
-  it('400 naming the failing path', async () => {
-    const bad = { ...doc(), deployments: [{ id: 'probe', url: 'ftp://x' }] };
-    const res = await put(bad);
-    expect([res.status, (await errorOf(res)).details]).toEqual([
-      400,
-      [expect.objectContaining({ field: 'deployments.0.url' })],
-    ]);
-  });
-
-  it('400 when the body target differs from the path', async () => {
-    const res = await put(doc('m_00000000'));
-    expect([res.status, (await errorOf(res)).details]).toEqual([
-      400,
-      [{ field: 'target', message: 'equals the target in the path' }],
-    ]);
-  });
-
-  it('400 for a body that is not JSON', async () => {
-    const server = await as(WRITE);
-    const init = { method: 'PUT', headers: { 'content-type': 'application/json' }, body: '{' };
-    expect((await server.fetch(`/api/platform${path(M)}`, init)).status).toBe(400);
-  });
-
-  it('413 PAYLOAD_TOO_LARGE above 256 KiB', async () => {
-    const routes = Object.fromEntries(
-      Array.from({ length: 3000 }, (_, i) => [`/r${i}`, { kind: 'text', body: 'x'.repeat(90) }])
-    );
-    const res = await put({ ...doc(), routes });
-    expect([res.status, (await errorOf(res)).details]).toEqual([413, { limitBytes: 262144 }]);
-  });
-
-  it('accepts an unknown top-level field and does not store it', async () => {
-    expect((await put({ ...doc(), overlays: { later: true } })).status).toBe(201);
-    expect(await dataOf(await read())).toEqual(doc());
   });
 });
