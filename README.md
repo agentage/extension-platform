@@ -77,7 +77,7 @@ npx agentage extension check      # PASS platform <version> conforms
 
 ## Deploy
 
-A release deploys nothing. Today the `platform` row in agentage/estate `estate.yaml` sets the version that runs on `next`, the staging environment, at `platform.next.agentage.io`. The move to the platform app host (a row in `platform/installation.json` of agentage/apphosts) is planned. More: [CLAUDE.md](CLAUDE.md#after-a-release).
+A release deploys nothing. The platform app host runs this extension on `next`, the staging environment, at `https://platform.next.agentage.io/api/platform`. The `platform` row in `platform/installation.json` of agentage/apphosts sets the version that runs. More: [CLAUDE.md](CLAUDE.md#after-a-release).
 
 ## Documentation
 

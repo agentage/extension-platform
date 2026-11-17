@@ -51,9 +51,9 @@ CI (`.github/workflows/ci.yml`) runs the same two steps. Its `local` job then ru
 
 ## After a release
 
-- Today the estate (agentage/estate) runs this extension, not an app host. The move to the platform app host (a row in `platform/installation.json` of agentage/apphosts) is planned.
-- A merge to the estate master deploys `next`. The deploy applies the stacks, checks each part's `/health`, then runs `npm run e2e -- platform gate next`.
-- The `version` field of the `platform` row in `estate.yaml` sets which release runs. To change what runs, release a new version and change that field.
+- The platform app host runs this extension on `next`, at `https://platform.next.agentage.io/api/platform` (since agentage/estate#244). Its row is in `platform/installation.json` of agentage/apphosts. The estate has no `platform` extension row.
+- A merge to the agentage/apphosts master deploys the app host through the estate `deploy.yml`. The deploy applies the stacks, checks each part's `/health`, then runs `npm run e2e -- platform gate next`.
+- The `version` field of that row sets which release runs. The row has `track: "latest"`, so the cloud worker opens the PR that changes the field after a release (agentage/apphosts `docs/installation.md`, "Float a row").
 - Read a red deploy on the Actions tab of agentage/estate. It names the part and the check. Search the part's logs for the request's `agcid`.
 - The estate runs the migrations as a job before the rollout. A release never restarts the store.
 - A kit minor reaches this repo through the Friday Dependabot group PR. Merge it when CI is green.
