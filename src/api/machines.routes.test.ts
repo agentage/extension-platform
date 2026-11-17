@@ -30,7 +30,7 @@ const put = async (id = ID, body: unknown = REGISTER) =>
 const list = async (query = '') =>
   ListSchema.parse(await (await send(await as(READ), `/machines${query}`, 'GET')).json());
 
-describe('PUT /api/v1/machines/{id}', () => {
+describe('PUT /api/platform/machines/{id}', () => {
   it('201 registers with the contract body, 200 refreshes without renaming', async () => {
     const first = await put();
     expect([first.status, first.headers.get('cache-control')]).toEqual([201, 'no-store']);
@@ -85,7 +85,7 @@ describe('PUT /api/v1/machines/{id}', () => {
   });
 });
 
-describe('POST /api/v1/machines/{id}/seen', () => {
+describe('POST /api/platform/machines/{id}/seen', () => {
   it('404 MACHINE_NOT_FOUND for an unknown machine', async () => {
     const res = await send(await as(WRITE), `/machines/${ID}/seen`, 'POST');
     expect(res.status).toBe(404);
@@ -108,7 +108,7 @@ describe('POST /api/v1/machines/{id}/seen', () => {
   });
 });
 
-describe('PATCH /api/v1/machines/{id}', () => {
+describe('PATCH /api/platform/machines/{id}', () => {
   it('renames or disconnects; 404 when unknown; 400 when empty', async () => {
     const patch = async (body: unknown) => send(await as(WRITE), `/machines/${ID}`, 'PATCH', body);
     expect((await patch({ name: 'x' })).status).toBe(404);
@@ -120,7 +120,7 @@ describe('PATCH /api/v1/machines/{id}', () => {
   });
 });
 
-describe('GET /api/v1/machines', () => {
+describe('GET /api/platform/machines', () => {
   // Set times: the order is neither the id order nor its reverse, and a tie spans a page edge.
   const seenAt = async (times: Record<string, string>) => {
     for (const [id, at] of Object.entries(times)) {
@@ -174,7 +174,7 @@ describe('GET /api/v1/machines', () => {
   });
 });
 
-describe('DELETE /api/v1/machines/{id}', () => {
+describe('DELETE /api/platform/machines/{id}', () => {
   it('204 forgets the record, then 404', async () => {
     await put();
     const gone = await send(await as(WRITE), `/machines/${ID}`, 'DELETE');

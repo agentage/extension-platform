@@ -14,11 +14,16 @@ const HOST = '';
 const PATH = '/installations/{target}';
 const isHost = (target: string) => target.startsWith('h_');
 
-const ownerOf = (target: string, caller: Caller | null, admin = false): string => {
+const ownerOf = (target: string, caller: Caller | null): string => {
   if (!caller && !isHost(target)) throw fail('UNAUTHORIZED', 'Missing token');
-  if (admin && !caller?.scopes.includes('platform:admin'))
-    throw fail('FORBIDDEN', 'Needs platform:admin');
   return isHost(target) ? HOST : (caller?.sub ?? HOST);
+};
+
+// D2: an app host's installation is its file in agentage/apphosts; the old h_ rows stay readable.
+const writable = (target: string): void => {
+  if (!isHost(target)) return;
+  const message = `${target} is an app host: its installation is <host>/installation.json in agentage/apphosts`;
+  throw fail('FORBIDDEN', message, { code: 'HOST_INSTALLATION_IS_A_FILE' });
 };
 
 // A weak tag compares like a strong one: the document is JSON, byte-equal under one tag.
@@ -62,12 +67,13 @@ const put = ({ route }: ApiContext, installations: InstallationsStore) => {
   const spec = { summary: 'Replace an installation', scope: 'write', input: output } as const;
   const full = { ...spec, params, output, etag: true, status: 201 } as const;
   route('put', PATH, full, async ({ input, params: { target }, caller, ifMatch, header }) => {
+    writable(target);
     const sent = preconditionOf(ifMatch, header('if-none-match'));
-    const owner = ownerOf(target, caller, isHost(target));
+    const owner = ownerOf(target, caller);
     const written = await installations.put(owner, target, checked(input, target), sent);
     if (written) return reply(input, { etag: written.etag, status: written.created ? 201 : 200 });
     const current = await installations.get(owner, target);
-    if (!current && !isHost(target) && sent.kind !== 'match') throw machineNotFound(target);
+    if (!current && sent.kind !== 'match') throw machineNotFound(target);
     throw stale(current);
   });
 };

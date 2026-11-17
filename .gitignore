@@ -10,3 +10,5 @@ test-results/
 playwright-report/
 .agentage/
 .kit/
+dist.next/
+dist.prev/

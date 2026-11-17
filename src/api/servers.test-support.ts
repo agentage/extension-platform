@@ -27,7 +27,7 @@ export const testServers = () => {
 };
 
 export const send = (server: Server, path: string, method: string, body?: unknown, headers = {}) =>
-  server.fetch(`/api/v1${path}`, {
+  server.fetch(`/api/platform${path}`, {
     method,
     headers: { 'content-type': 'application/json', ...headers },
     body: body === undefined ? undefined : JSON.stringify(body),

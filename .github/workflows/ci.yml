@@ -74,8 +74,8 @@ jobs:
           npx --prefix e2e-suite playwright install chromium
 
       # The cli and its kit come from this lockfile: a cli or kit patch needs a commit here.
-      - name: agentage extension up (the release recipes, store, dev issuer, gateway)
-        run: node_modules/.bin/agentage extension up
+      - name: agentage extension up --docker (the release recipes, store, dev issuer, gateway)
+        run: node_modules/.bin/agentage extension up --docker
 
       - name: The widget a11y test through the local gateway (src/**/*.spec.ts)
         run: npm run test:e2e

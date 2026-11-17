@@ -18,10 +18,10 @@ Read the file named here before you read `src/`.
 
 ## Where things are
 
-| Part  | Folder        | What it does here                                       |
-| ----- | ------------- | ------------------------------------------------------- |
-| api   | `src/api`     | `/api/v1/machines` and `/api/v1/installations/{target}` |
-| store | `migrations/` | postgres; the tables `machines` and `installations`     |
+| Part  | Folder        | What it does here                                                   |
+| ----- | ------------- | ------------------------------------------------------------------- |
+| api   | `src/api`     | `/api/platform/machines` and `/api/platform/installations/{target}` |
+| store | `migrations/` | postgres; the tables `machines` and `installations`                 |
 
 - Routes: `src/api/machines.routes.ts` and `src/api/installations.routes.ts`. Schemas: `machine.schema.ts` and `installation.schema.ts` in the same folder.
 - The contract is `openapi.json`. This repo has no mcp or ui part, so there is no `*.mcpc.json`.
@@ -32,7 +32,7 @@ Read the file named here before you read `src/`.
 - A part imports only its own folder and `src/lib/`. `src/manifest.test.ts` refuses a cross-part import.
 - In `src/` never use `listen()`, the `process` global, a token check or an absolute agentage URL. The kit owns them.
 - Declare a route with `route(method, path, { summary, scope, input, output }, handler)`. The scope is `read` (the default), `write`, `admin`, `public` or `optional`.
-- Account rows are keyed by the caller's id (`caller.sub`). A route must never return a row of another account. Host documents (`h_...`) belong to no account.
+- Account rows are keyed by the caller's id (`caller.sub`). A route must never return a row of another account. Host documents (`h_...`) belong to no account; they are read-only (D2: an app host installation is its file in agentage/apphosts).
 - Add a numbered file in `migrations/` for a schema change. Never edit a migration that ran. Write each one so a second run does nothing: `if not exists`, or a `do` block that catches `duplicate_object`.
 - Tests sit beside the code as `src/**/*.test.ts`. Coverage floor: 70 on all four metrics (`vitest.config.ts`). `npm run test:e2e` finds no `*.spec.ts` file here and passes with no tests.
 - After a route change run `npm run build`, `npx agentage extension check --write`, then `npm run format`. `check` compares `openapi.json` with the code.

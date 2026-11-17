@@ -1,15 +1,15 @@
 # extension-platform
 
-The agentage account API: the `platform` extension (`@agentage/extension-platform`), served at `platform.<host>/api/v1`. It stores each account's machines, and the agentage cli registers its machine here and sends a heartbeat. It also stores one installation document per machine or cloud host (an `h_<host>` target). An installation document is a JSON document that lists the extension deployments and routes of that target.
+The agentage account API: the `platform` extension (`@agentage/extension-platform`), served at `<host>/api/platform`. It stores each account's machines, and the agentage cli registers its machine here and sends a heartbeat. It also stores one installation document per machine. An app host keeps its installation in its file `<host>/installation.json` in agentage/apphosts; the old cloud host documents (`h_<host>`) stay readable and a write to one is refused. An installation document is a JSON document that lists the extension deployments and routes of that target.
 
 ```bash
-npm ci && npx agentage extension up    # needs Node 22, Docker, git; serves http://localhost:4280
+npm ci && npx agentage extension up --docker    # needs Node 22, Docker, git; serves http://localhost:4280
 ```
 
 ## What it holds
 
 - **Machine**: one agentage cli install of an account. Its id is `m_` plus 8 hex digits. It has a name, a platform (`linux-x64`), the cli version and a state (`connected` or `disconnected`).
-- **Installation**: one JSON document per target. It lists the extension deployments and routes of that target. A target is a machine (`m_...`) or a cloud host (`h_<host>`). A document is at most 256 KiB.
+- **Installation**: one JSON document per target. It lists the extension deployments and routes of that target. A target is a machine (`m_...`). A cloud host target (`h_<host>`) is read-only: 403 `HOST_INSTALLATION_IS_A_FILE` on a write. A document is at most 256 KiB.
 - A machine and its installation live and die together. Forgetting a machine deletes its installation.
 
 ## Routes and scopes
@@ -18,7 +18,7 @@ The full list is [openapi.json](openapi.json). It is generated, so do not edit i
 
 - Every route needs a token, except `GET /installations/h_...`.
 - Read routes need `platform:read` or higher. Write routes need `platform:write` or higher.
-- A write to a host installation also needs `platform:admin`.
+- A write to a host installation (`h_...`) is refused for every token.
 - A machine only sees the rows of its own account.
 
 More: [docs/routes.md](docs/routes.md)
@@ -34,12 +34,12 @@ More: [docs/routes.md](docs/routes.md)
 You need Node 22, npm 10, Docker and git. Ports 4280 and 4281 must be free, or `up` refuses to start.
 
 1. `npm ci`
-2. `npx agentage extension up`. It builds the images and starts postgres. It also starts a dev token issuer (port 4281) and a gateway (port 4280). It waits until every part is healthy.
+2. `npx agentage extension up --docker`. It builds the images and starts postgres. It also starts a dev token issuer (port 4281) and a gateway (port 4280). It waits until every part is healthy.
 3. Call the api with a token that has the scope of the route:
 
    ```bash
    T=$(npx agentage extension token --scope platform:read)
-   curl -H "Authorization: Bearer $T" localhost:4280/api/v1/machines   # 200
+   curl -H "Authorization: Bearer $T" localhost:4280/api/platform/machines   # 200
    ```
 
    A call without a token returns 401.
@@ -61,7 +61,7 @@ npx agentage extension check      # PASS platform <version> conforms
 2. Run `npx agentage extension check --write` and commit.
 3. Push the tag `v<version>` on that commit on master.
 
-`release.yml` then pushes the part images, attaches `agentage-extension.json` to the GitHub release and publishes to npm. A re-run only retries npm. A moved tag is refused, so a fix is a new version.
+`release.yml` then pushes the one image and attaches `agentage-container.json` and `agentage-extension.json` to the GitHub release. The package is private, so nothing goes to npm. A moved tag is refused, so a fix is a new version.
 
 ## Documentation
 
