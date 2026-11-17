@@ -1,6 +1,6 @@
 {
   "name": "@agentage/extension-platform",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "The agentage account API: machines and installations",
   "type": "module",
@@ -47,12 +47,13 @@
     "verify": "npm run type-check && npm run lint && npm run format:check && npm run test:coverage && npm run build"
   },
   "dependencies": {
-    "@agentage/extension": "^0.18.1",
+    "@agentage/extension": "^0.18.4",
     "express": "^5.1.0",
     "zod": "^4.2.0"
   },
   "devDependencies": {
     "@agentage/cli": "0.56.0",
+    "@agentage/design-system": "0.20.1",
     "@agentage/widget": "^0.3.0",
     "@axe-core/playwright": "4.14.0",
     "@electric-sql/pglite": "0.5.16",
