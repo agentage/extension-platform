@@ -10,10 +10,10 @@ type Written = { etag: string; created: boolean };
 const quote = (etag: string) => `"${etag}"`;
 const newEtag = () => randomBytes(12).toString('base64url');
 
-// A machine target is written only while the machine is on the owner's account ($5: a host).
+// A machine target is written only while the machine is on the owner's account (h_ is refused).
 const INSERT = `insert into installations (owner, target, document, etag)
   select $1, $2, $3, $4
-  where $5::boolean or exists (select 1 from machines where user_id = $1 and id = $2)`;
+  where exists (select 1 from machines where user_id = $1 and id = $2)`;
 
 const WRITE: Record<Precondition['kind'], string> = {
   any: `${INSERT} on conflict (owner, target) do update set document = excluded.document,
@@ -39,8 +39,8 @@ export const createInstallationsStore = (store: Store) => ({
   },
   // null when nothing was written: a failed precondition, or a machine not on the account.
   put: async (owner: string, target: string, doc: Installation, sent: Precondition) => {
-    const last = sent.kind === 'match' ? sent.etag : target.startsWith('h_');
-    const params = [owner, target, JSON.stringify(doc), newEtag(), last];
+    const params = [owner, target, JSON.stringify(doc), newEtag()];
+    if (sent.kind === 'match') params.push(sent.etag);
     const [row] = (await store.query<Written>(WRITE[sent.kind], params).catch(raced)).rows;
     return row ? { etag: quote(row.etag), created: row.created } : null;
   },
