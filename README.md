@@ -40,7 +40,7 @@ It has no MCP tools and no app page.
 | `GET /installations/{target}` | `platform:read`  | reads an installation; a host target needs no token |
 | `PUT /installations/{target}` | `platform:write` | writes the installation of a machine                |
 
-The full list is [openapi.json](openapi.json). It is generated, so do not edit it. During the move to `/api/{id}` paths, the same routes also answer under `/api/v1`.
+The full list is [openapi.json](openapi.json). It is generated, so do not edit it. During the move to `/api/{id}` paths, the part images also answer under `/api/v1`. A client tries `/api/{id}` first.
 
 - A higher scope passes a route that needs a lower one. The order is `read`, `write`, `admin`.
 - A machine only sees the rows of its own account.
