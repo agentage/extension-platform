@@ -61,7 +61,7 @@ npx agentage extension check      # PASS platform <version> conforms
 2. Run `npx agentage extension check --write` and commit.
 3. Push the tag `v<version>` on that commit on master.
 
-`release.yml` then pushes the part images, attaches `agentage-extension.json` to the GitHub release and publishes to npm. A re-run only retries npm. A moved tag is refused, so a fix is a new version.
+`release.yml` then pushes the one image and attaches `agentage-container.json` and `agentage-extension.json` to the GitHub release. The package is private, so nothing goes to npm. A moved tag is refused, so a fix is a new version.
 
 ## Documentation
 
